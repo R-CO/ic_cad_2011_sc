@@ -354,7 +354,6 @@ void DLSC_Handle(const string &powerStatement)
      size_t begin, end;
      size_t subBegin, subEnd;
      size_t i;
-     size_t spaceCount = 0;
      string tempString;
      string subStatement;
      const string command("define_level_shifter_cell");
@@ -371,7 +370,7 @@ void DLSC_Handle(const string &powerStatement)
               subStatement = powerStatement.substr(begin, end-begin);
               subEnd = subStatement.find_last_not_of(" \t");
               subStatement = subStatement.substr(0, subEnd+1);
-              spaceCount = CountSpace(subStatement);
+              auto spaceCount = CountSpace(subStatement);
               subEnd = 0;
               for ( i = 0; i < spaceCount; i++ ) {
                   subBegin = subStatement.find_first_not_of(" \t", subEnd);
@@ -535,16 +534,5 @@ void CPM_Handle(const string &powerStatement)
      }
      createPowMode.push_back(tempCPM);
 }
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

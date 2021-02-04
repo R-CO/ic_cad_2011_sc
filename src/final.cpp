@@ -11,9 +11,9 @@
 using namespace std;
 #include "Data.h"
 
-#define TEST 1
+#define TEST 0
 #define WINDOWS 0
-#define FINAL 0
+#define FINAL 1
 
 /*** Global Variables ***/
 bool secondTime = false;
@@ -50,7 +50,7 @@ bool ArgumentHandle(const int, char *[], map<string, Module> &);
 
 /*** about the data tree ***/
 void CreateRoot(void);
-void CreateTreeNode(const string &, map<string, Module> &, const string);
+void CreateTreeNode(const string &, map<string, Module> &, const string &);
 void SetIntoSpecificDomain(map<string, Module> &);
 void SetIntoSameDomain(NodePointer &, const string &);
 void SetIntoDefaultDomain(map<string, Module> &);
@@ -77,19 +77,19 @@ int main(int argc, char *argv[])
     SetIntoDefaultDomain(moduleMap);
 	SetPortInfo(moduleMap);
     CreateGraph(moduleMap);
-	#if FINAL
-		//Checker( moduleMap );
-		//print_Report();
-	#endif
+#if FINAL
+    Checker( moduleMap );
+    print_Report();
+#endif
 	
-    #if TEST
-    	//VerilogParserTesting(moduleMap);
-		NodeTesting();
-    #endif
+#if TEST
+    VerilogParserTesting(moduleMap);
+    NodeTesting();
+#endif
     
-    #if WINDOWS
-        system("pause");
-    #endif
+#if WINDOWS
+    system("pause");
+#endif
     
     return EXIT_SUCCESS;
 }
@@ -201,17 +201,17 @@ void CreateRoot(void)
     //nodeMap[topModule].hiraName = topModule;
 	nodeMap[topModule].type = topModule;
     nodeMap[topModule].name = topModule;
-    nodeMap[topModule].father = NULL;
+    nodeMap[topModule].father = nullptr;
 }
 
-void CreateTreeNode(const string &moduleName, map<string, Module> &moduleMap, const string nodeName)
+void CreateTreeNode(const string &moduleName, map<string, Module> &moduleMap, const string &nodeName)
 {
      map<string, Unit>::iterator unitIter;
      string tempName;
      NodePointer tempPointer;
 
      if ( moduleMap.count(moduleName) > 0 && libModule.count(moduleName) == 0 ) {
-        for ( unitIter = moduleMap[moduleName].units.begin(); unitIter != moduleMap[moduleName].units.end(); unitIter++ ) {
+        for ( unitIter = moduleMap[moduleName].units.begin(); unitIter != moduleMap[moduleName].units.end(); ++unitIter ) {
             tempName = nodeName+"/"+unitIter->first;
             if ( tempName[0] == '/' ) {
                tempName = tempName.substr(1);
@@ -252,7 +252,7 @@ void SetIntoSpecificDomain(map<string, Module> &moduleMap)
      map<string, bool>::iterator k;
      PortDomain portDomain;
 
-     for ( iter = createPowDomain.begin(); iter != createPowDomain.end(); iter++ ) {
+     for ( iter = createPowDomain.begin(); iter != createPowDomain.end(); ++iter ) {
          for ( i = 0; i < iter->second.instances.size(); i++ ) {
              nodeMap[iter->second.instances[i]].domain = iter->second.name;
              nodeMap[iter->second.instances[i]].domainDef = true;
@@ -295,12 +295,14 @@ void SetIntoDefaultDomain(map<string, Module> &moduleMap)
      PortDomain portDomain;
 
      /*** set instances into default domain ***/
-     for ( iter = notYetSetDomain.begin(); iter != notYetSetDomain.end(); iter++ ) {
+     for ( iter = notYetSetDomain.begin(); iter != notYetSetDomain.end(); ++iter ) {
          nodeMap[iter->first].domain = defaultDomain;
-         notYetSetDomain.erase(iter);
+         // notYetSetDomain.erase(iter);
      }
+     notYetSetDomain.clear();
+
      /*** set ports of the top level into default domain ***/
-     for ( it = moduleMap[topModule].ports.begin(); it != moduleMap[topModule].ports.end(); it++ ) {
+     for ( it = moduleMap[topModule].ports.begin(); it != moduleMap[topModule].ports.end(); ++it ) {
          if ( topPortDomain.count(it->first) != 1 ) {
             portDomain.portName = it->first;
             portDomain.domain = defaultDomain;
@@ -318,7 +320,7 @@ void CreateGraph(map<string, Module> &moduleMap)
     bool con = false; // to continue?
     set<string> pre, suc;
     
-    for ( nodeIter = nodeMap.begin(); nodeIter != nodeMap.end(); nodeIter++ ) {
+    for ( nodeIter = nodeMap.begin(); nodeIter != nodeMap.end(); ++nodeIter ) {
         if ( nodeIter->second.type == topModule ) {
             continue;
         }
@@ -327,7 +329,7 @@ void CreateGraph(map<string, Module> &moduleMap)
         }
         for ( portIter = moduleMap[nodeIter->second.father->type].units[nodeIter->second.name].ports.begin();
                 portIter != moduleMap[nodeIter->second.father->type].units[nodeIter->second.name].ports.end();
-                portIter++ ) {
+                ++portIter ) {
             if ( isoNode == true ) {
                 if ( defineIsoCell[nodeIter->second.type].enable == portIter->second.portName ) {
                     con = true;
@@ -422,15 +424,15 @@ void SetPortInfo(map<string, Module> &moduleMap)
 	vector<WireConnectInfo>::iterator iWireCon;
 	NodeDomain tempNodeDomain;
 
-	for ( nodeIter = nodeMap.begin(); nodeIter != nodeMap.end(); nodeIter++ ) {
+	for ( nodeIter = nodeMap.begin(); nodeIter != nodeMap.end(); ++nodeIter ) {
 		if ( nodeIter->second.type == topModule ) { // to skip the top node
 			continue;
 		}
 		iModule = moduleMap.find(nodeIter->second.father->type);
 		iUnit = iModule->second.units.find(nodeIter->second.name); 
-		for ( iPort = iUnit->second.ports.begin(); iPort != iUnit->second.ports.end(); iPort++ ) {
+		for ( iPort = iUnit->second.ports.begin(); iPort != iUnit->second.ports.end(); ++iPort ) {
 			iWire = iModule->second.wires.find(iPort->second.connectWireName);
-			for ( iWireCon = iWire->second.conInfo.begin(); iWireCon != iWire->second.conInfo.end(); iWireCon++ ) {
+			for ( iWireCon = iWire->second.conInfo.begin(); iWireCon != iWire->second.conInfo.end(); ++iWireCon ) {
 				if ( iWireCon->instanceType == nodeIter->second.father->type ) {
 					tPortInfo.conNode = nodeIter->second.father;
 				}

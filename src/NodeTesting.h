@@ -35,23 +35,21 @@ void NodeTesting() {
 		cout << "Name: " << nodeIter->second.name << "***" << endl;
 		cout << "Father's hirarchy name: " << nodeIter->second.father->hiraName << "***" << endl;
 		cout << "Children's hirachy name: ";
-		for ( iChild = nodeIter->second.children.begin(); iChild != nodeIter->second.children.end(); iChild++ )	{
+		for ( iChild = nodeIter->second.children.begin(); iChild != nodeIter->second.children.end(); ++iChild )	{
 			cout << (*iChild)->hiraName << "*** ";
 		}
 		cout << endl;
 		cout << "Node's domain: " << nodeIter->second.domain << "***" << endl;
 		cout << "Predecessors' hirarchy name: ";
-		for ( iPre = nodeIter->second.pre.begin(); iPre != nodeIter->second.pre.end(); iPre++ ) {
+		for ( iPre = nodeIter->second.pre.begin(); iPre != nodeIter->second.pre.end(); ++iPre ) {
 			cout << *iPre << "*** ";
 		}
 		cout << endl;
 		cout << "Successors' hirachy name: ";
-		for ( iSuc = nodeIter->second.suc.begin(); iSuc != nodeIter->second.suc.end(); iSuc++ ) {
-			cout << *iSuc << "*** ";
-		}
-		cout << endl;
-		for ( iInPort = nodeIter->second.inPort.begin(); iInPort != nodeIter->second.inPort.end(); iInPort++ ) {
-			for ( iPortInfo = iInPort->second.begin(); iPortInfo != iInPort->second.end(); iPortInfo++ ) {
+		for ( iSuc = nodeIter->second.suc.begin(); iSuc != nodeIter->second.suc.end(); ++iSuc ) {
+					cout << *iSuc << "*** ";}
+				cout << endl;for ( iInPort = nodeIter->second.inPort.begin(); iInPort != nodeIter->second.inPort.end(); ++iInPort ) {
+			for ( iPortInfo = iInPort->second.begin(); iPortInfo != iInPort->second.end(); ++iPortInfo ) {
 				cout << "Input port: " << iInPort->first << "***" <<  endl; 
 				cout << "Connect to node: " << (*iPortInfo).conNode->hiraName << "***" << endl;
 				cout << "Connect to port: " << (*iPortInfo).conPortName << "***" << endl;
@@ -59,8 +57,8 @@ void NodeTesting() {
 				cout << "By wire: " << (*iPortInfo).wireName << "***" << endl;
 			}
 		}	
-		for ( iOutPort = nodeIter->second.outPort.begin(); iOutPort != nodeIter->second.outPort.end(); iOutPort++ ) {
-			for ( iPortInfo = iOutPort->second.begin(); iPortInfo != iOutPort->second.end(); iPortInfo++ ) {
+		for ( iOutPort = nodeIter->second.outPort.begin(); iOutPort != nodeIter->second.outPort.end(); ++iOutPort ) {
+			for ( iPortInfo = iOutPort->second.begin(); iPortInfo != iOutPort->second.end(); ++iPortInfo ) {
 				cout << "Output port: " << iOutPort->first << "***" <<  endl; 
 				cout << "Connect to node: " << (*iPortInfo).conNode->hiraName << "***" << endl;
 				cout << "Connect to port: " << (*iPortInfo).conPortName << "***" << endl;
@@ -68,13 +66,12 @@ void NodeTesting() {
 				cout << "By wire: " << (*iPortInfo).wireName << "***" << endl;
 			}
 		}
-		for ( iSource = nodeIter->second.source.begin(); iSource != nodeIter->second.source.end(); iSource++ ) {
+		for ( iSource = nodeIter->second.source.begin(); iSource != nodeIter->second.source.end(); ++iSource ) {
 			cout << "Source node: " << (*iSource).node << "***" << endl;
 			cout << "Source domain: " << (*iSource).domain << "***" << endl;
-			cout << "Self port: " << (*iSource).selfPort << "***" << endl;
-			cout << "Other port: " << (*iSource).otherPort << "***" << endl;
+			cout << "Self port: " << (*iSource).selfPort << "***" << endl;			cout << "Other port: " << (*iSource).otherPort << "***" << endl;
 		}
-		for ( iDest = nodeIter->second.destination.begin(); iDest != nodeIter->second.destination.end(); iDest++ ) {
+		for ( iDest = nodeIter->second.destination.begin(); iDest != nodeIter->second.destination.end(); ++iDest ) {
 			cout << "Destination node: " << (*iDest).node << "***" << endl;
 			cout << "Destination domain: " << (*iDest).domain << "***" << endl;
 			cout << "Self port: " << (*iDest).selfPort << "***" << endl;

@@ -988,7 +988,7 @@ void FindTopModule(map<string, Module> &moduleMap)
 {
     map<string, Module>::iterator it;
     
-    for ( it = moduleMap.begin(); it != moduleMap.end(); it++ ) {
+    for ( it = moduleMap.begin(); it != moduleMap.end(); ++it ) {
         if ( it->second.top == true && libModule.count(it->second.moduleName) == 0) {
             topModule = it->second.moduleName;
             break;

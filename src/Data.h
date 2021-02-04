@@ -10,11 +10,11 @@ using namespace std;
 #ifndef DATA
 #define DATA
 
-typedef enum PortType { IN, OUT, INOUT };
+enum PortType { IN, OUT, INOUT };
 
-typedef enum Location { FROM, TO, EITHER };
+enum Location { FROM, TO, EITHER };
 
-typedef enum IsoGateType { AND, OR, NAND, NOR, XOR, XNOR };
+enum IsoGateType { AND, OR, NAND, NOR, XOR, XNOR };
 
 struct WireConnectInfo {
         string instanceType;
@@ -22,6 +22,8 @@ struct WireConnectInfo {
         string portName;
         PortType portType;
         int portOrder;
+
+        WireConnectInfo() : instanceType(), instanceName(), portName(), portType(PortType::IN), portOrder(-1) {}
         void clear() {
              this->instanceType.clear();
              this->instanceName.clear();
@@ -59,12 +61,10 @@ struct Port {
         bool inverted; // is there a simbol '~' in front of the connect-wire name
         int from;
         int to;
-        Port () {
-            this->multiBits = false;
-            this->inverted = false;
-            this->from = -1;
-            this->to = -1;
-        }
+
+        Port ()
+            : portName(), portOrder(-1), type(PortType::IN), connectWireName(), multiBits(false), inverted(false), from(-1), to(-1) {}
+
         void clear() {
              this->portName.clear();
              this->connectWireName.clear();
@@ -80,6 +80,7 @@ struct Unit {
         string unitType; 			// module
         string unitName; 			// instance name
         map<string, Port> ports;
+
         void clear() {
              this->unitType.clear();
              this->unitName.clear();
@@ -101,8 +102,8 @@ struct Module { 					// to record the information of a module
         }
 };
 
-typedef struct PortInfo;
-typedef struct NodeDomain;
+struct PortInfo;
+struct NodeDomain;
 
 typedef struct Node *NodePointer;
 
@@ -128,6 +129,8 @@ struct C_P_D { 				// create_power_domain
     vector<string> ports;
     bool defDomain; 		// is the power domain a default power domain
     bool alwaysOn; 			// is the power domain a always on power domain
+
+    C_P_D() : name(), instances(), ports(), defDomain(false), alwaysOn(false) {}
 };
 
 struct C_I_R { 				// create_isolation_rule
@@ -137,6 +140,8 @@ struct C_I_R { 				// create_isolation_rule
     string condition;
 	bool negation; 			// is there a '!' symbol in front of the condition, true denote as yes
     bool output; 			// false denote as low, true denote as high
+
+    C_I_R() : name(), from(), to(), condition(), negation(false), output(false) {}
 };
 
 typedef struct D_I_C *D_I_C_pointer;
@@ -146,12 +151,16 @@ struct D_I_C { 				// define_isolation_cell
 	string enable;
 	string location;
 	IsoGateType gateType;
+
+    D_I_C() : cell(), enable(), location(), gateType(AND) {}
 };
 
 struct C_L_S_R { 			// create_level_shifter_rule
 	string name;
 	string from;
 	string to;
+
+    C_L_S_R() : name(), from(), to() {}
 };
 
 typedef struct D_L_S_C *D_L_S_C_pointer;
@@ -164,22 +173,30 @@ struct D_L_S_C { 			// define_level_shifter_cell
 	float inHigh;
 	float outLow;
 	float outHigh;
+
+    D_L_S_C() : cell(), location(), direction(), inLow(0.0), inHigh(0.0), outLow(0.0), outHigh(0.0) {}
 };
 
 struct C_N_C { 				// create_nominal_condition
 	string name;
 	float voltage;
+
+    C_N_C() : name(), voltage(0.0) {}
 };
 
 struct C_P_M { 				// create_power_mode
 	string name;
 	map<string, string> condition;
 	bool defMode;
+
+    C_P_M() : name(), condition(), defMode(false) {}
 };
 
 struct PortDomain {
        string portName;
        string domain;
+
+    PortDomain() : portName(), domain() {}
 };
 
 struct PortInfo {
@@ -187,9 +204,11 @@ struct PortInfo {
 	string conPortName;
 	NodePointer conNode;
 	string wireName;
+
 	void clear() {
+        conPortType = PortType::IN;
 		conPortName.clear();
-		conNode = NULL;
+		conNode = nullptr;
 		wireName.clear();
 	}
 };	
@@ -199,6 +218,7 @@ struct NodeDomain {
 	string domain;
 	string selfPort;
 	string otherPort;
+
 	void clear() {
 		node.clear();
 		domain.clear();

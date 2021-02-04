@@ -15,7 +15,7 @@ string CPM_DomainToNom(C_P_M, string &);
 float CNC_NameToVoltage(string);
 bool isSpeciallInstance(string &, string &);
 string float2str( float &i );
-string findPort( string hirname, PortType type, map<string, Module> &moduleMap, string notsame );
+string findPort( string hirname, PortType type, map<string, Module> &moduleMap, const string &notsame );
 string findControl( string type );
 string findS( map<string, Module> &moduleMap, string hirname, PortType type, string &finalport );
 
@@ -191,7 +191,7 @@ bool CheckLS_1_2_4( NodePointer LSNodes, map<string, Module> &moduleMap )
 	// find legal voltage
 	map<string, D_L_S_C>::iterator itter;
 	float inLow, inHigh, outLow, outHigh;
-	for ( itter = defineLevShCell.begin(); itter != defineLevShCell.end(); itter++  ) {
+	for ( itter = defineLevShCell.begin(); itter != defineLevShCell.end(); ++itter  ) {
 		if ( itter->second.cell == temp->type )  {
 			inLow = itter->second.inLow;
 			inHigh = itter->second.inHigh;
@@ -314,12 +314,12 @@ void CheckISO_1( NodePointer ISONode, map<string, Module> &moduleMap )
 bool CheckISO_4_LS_3( map<string, Module> &moduleMap )
 {
 	unsigned int i, j, k;
-	string suc_hirname;
+	// string suc_hirname;
 	map<string, Node>::iterator sucIter;
-	string destination;
+	// string destination;
 
 	// Traversal All Map
-	for ( nodeIter = nodeMap.begin(); nodeIter != nodeMap.end(); nodeIter++  ) {
+	for ( nodeIter = nodeMap.begin(); nodeIter != nodeMap.end(); ++nodeIter  ) {
 		if ( isSpeciallInstance( nodeIter->second.type, nodeIter->second.hiraName ) ) // This instance is special case
 			continue;
 
@@ -412,7 +412,7 @@ string CPM_DomainToNom( C_P_M mode, string &domain )
 	else
 		cout << "Create_Power_Mode can't find " << domain << " in " << mode.name << endl;
 
-	return NULL;
+	return nullptr;
 }
 
 
@@ -539,7 +539,7 @@ bool CheckISO_6( NodePointer ISONodes, map<string, Module> &moduleMap )
 	
 	// Find subModule
 	map<string, Unit>::iterator iter_u;
-	for ( iter_u = module->units.begin(); iter_u != module->units.end(); iter_u++ ) {
+	for ( iter_u = module->units.begin(); iter_u != module->units.end(); ++iter_u ) {
 		subType = iter_u->second.unitType;
 	}
 	
@@ -564,7 +564,7 @@ bool CheckISO_6( NodePointer ISONodes, map<string, Module> &moduleMap )
 	// Module
 	int A, B, C;
 	map<string, Port>::iterator ports;
-	for ( ports = module->ports.begin(); ports != module->ports.end(); ports++ ) {
+	for ( ports = module->ports.begin(); ports != module->ports.end(); ++ports ) {
 		if ( ports->second.portName == control ) {
 			if ( ports->second.inverted )
 				A = 0;
@@ -587,12 +587,12 @@ bool CheckISO_6( NodePointer ISONodes, map<string, Module> &moduleMap )
 	}
 	
 	// ISO Cell
-	for ( iter_u = father->units.begin(); iter_u != father->units.end(); iter_u++ ) {
+	for ( iter_u = father->units.begin(); iter_u != father->units.end(); ++iter_u ) {
 		if ( iter_u->second.unitName == ISONodes->name )
 			break;
 	}	
 	
-	for ( ports = iter_u->second.ports.begin(); ports != iter_u->second.ports.end(); ports++ ) {
+	for ( ports = iter_u->second.ports.begin(); ports != iter_u->second.ports.end(); ++ports ) {
 		if ( ports->second.portName == control ) {
 			if ( ports->second.inverted ) {
 				if ( A == 0 )
@@ -656,14 +656,14 @@ string float2str( float &i )
 }
 
 
-string findPort( string hirname, PortType type, map<string, Module> &moduleMap, string notsame )
+string findPort( string hirname, PortType type, map<string, Module> &moduleMap, const string &notsame )
 {
 	NodePointer instance = &nodeMap[hirname];
 	Module *mou = &moduleMap[instance->type];
 	map<string, Port>::iterator p;
 	
 	
-	for ( p = mou->ports.begin(); p != mou->ports.end(); p++  ) {
+	for ( p = mou->ports.begin(); p != mou->ports.end(); ++p  ) {
 		if ( (p->second.type == type) && (notsame != p->second.portName) )
 			return p->second.portName;
 	}
@@ -690,7 +690,7 @@ string findS( map<string, Module> &moduleMap, string hirname, PortType source_ty
 	map<string, Port>::iterator now_port_iter;
 	string nowWireName;
 	
-	for ( now_port_iter = nowUnit->ports.begin(); now_port_iter != nowUnit->ports.end(); now_port_iter++ ) {
+	for ( now_port_iter = nowUnit->ports.begin(); now_port_iter != nowUnit->ports.end(); ++now_port_iter ) {
 		if ( source_type == now_port_iter->second.type ) {
 			nowWireName = now_port_iter->second.connectWireName;
 			break;
@@ -751,7 +751,7 @@ string findD( map<string, Module> &moduleMap, string hirname, PortType source_ty
 	map<string, Port>::iterator now_port_iter;
 	string nowWireName;
 	
-	for ( now_port_iter = nowUnit->ports.begin(); now_port_iter != nowUnit->ports.end(); now_port_iter++ ) {
+	for ( now_port_iter = nowUnit->ports.begin(); now_port_iter != nowUnit->ports.end(); ++now_port_iter ) {
 		if ( source_type == now_port_iter->second.type ) {
 			nowWireName = now_port_iter->second.connectWireName;
 			break;
