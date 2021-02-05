@@ -18,5 +18,8 @@
     <ClCompile Include="test.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
+    <ClCompile Include="verilog_parser_test.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
