@@ -1,33 +1,24 @@
+#include "checker.hpp"
+
 // C++ standard library
+#include <iostream>
+using std::cout;
+using std::endl;
 #include <sstream>
+using std::stringstream;
 #include <string>
+using std::string;
 
-// C++ STL
+// C++ STL container
 #include <map>
+using std::map;
 
-#include "Report.h"
+#include "data_structure_define.hpp"
+#include "power_intent_parser.hpp"
+#include "verilog_parser.hpp"
 
-#ifndef CHECKER_H
-#define CHECKER_H
-
-void Checker(map<string, Module> &);
-bool CheckLS_1_2_4(NodePointer LSNodes, map<string, Module> &);
-bool CheckISO_4_LS_3(map<string, Module> &);
-bool CheckISO_2_3(NodePointer, map<string, Module> &);
-bool CheckISO_5(NodePointer, map<string, Module> &);
-bool CheckISO_6(NodePointer, map<string, Module> &);
-void CheckISO_1(NodePointer, map<string, Module> &);
-string CPM_DomainToNom(C_P_M, string &);
-float CNC_NameToVoltage(string);
-bool isSpeciallInstance(string &, string &);
-string float2str(float &i);
-string findPort(string hirname, PortType type, map<string, Module> &moduleMap,
-                const string &notsame);
-string findControl(string type);
-string findS(map<string, Module> &moduleMap, string hirname, PortType type,
-             string &finalport);
-
-string source, destination;
+string g_source;
+string g_destination;
 
 void Checker(map<string, Module> &moduleMap) {
   for (unsigned int i = 0; i < isoNodes.size(); i++) {
@@ -49,8 +40,8 @@ void Checker(map<string, Module> &moduleMap) {
 bool CheckISO_2_3(NodePointer ISONodes, map<string, Module> &moduleMap) {
   NodePointer temp = ISONodes;
 
-  source.clear();
-  destination.clear();
+  g_source.clear();
+  g_destination.clear();
 
   if (temp->pre.size() != 1) {
     return false;
@@ -63,7 +54,7 @@ bool CheckISO_2_3(NodePointer ISONodes, map<string, Module> &moduleMap) {
   }
 
   if (temp->father->hiraName != topModule) {
-    source = nodeMap[temp->pre.back()].domain;
+    g_source = nodeMap[temp->pre.back()].domain;
   } else {
     return false;
   }
@@ -81,18 +72,18 @@ bool CheckISO_2_3(NodePointer ISONodes, map<string, Module> &moduleMap) {
   }
 
   if (temp->father->hiraName != topModule) {
-    destination = nodeMap[temp->suc.back()].domain;
+    g_destination = nodeMap[temp->suc.back()].domain;
   } else {
     return false;
   }
 
   // Check ISO_2
-  if (source == destination) {
+  if (g_source == g_destination) {
     string s;
 
     s = "[Instance: " + ISONodes->hiraName + " (" + ISONodes->type +
-        ") Source and destination power domain: " + source + "]";
-    Report[1].str.push_back(s);
+        ") Source and g_destination power domain: " + g_source + "]";
+    g_report[1].str.push_back(s);
 
     return false;
   }
@@ -100,27 +91,27 @@ bool CheckISO_2_3(NodePointer ISONodes, map<string, Module> &moduleMap) {
   string locate = defineIsoCell[ISONodes->type].location;
 
   if (locate == "from") {
-    if (ISONodes->domain == destination) {
+    if (ISONodes->domain == g_destination) {
       string s;
 
       s = "['" + ISONodes->hiraName + "' (" + ISONodes->type +
-          ") is not allowed in source domain\n";
-      s += "\t\t\t Applied rule: " + createIsoRule[source + destination].name +
-           "]";
-      Report[2].str.push_back(s);
+          ") is not allowed in g_source domain\n";
+      s += "\t\t\t Applied rule: " +
+           createIsoRule[g_source + g_destination].name + "]";
+      g_report[2].str.push_back(s);
 
       return false;
     } else
       return true;
   } else if (locate == "to") {
-    if (ISONodes->domain == source) {
+    if (ISONodes->domain == g_source) {
       string s;
 
       s = "['" + ISONodes->hiraName + "' (" + ISONodes->type +
-          ") is not allowed in source domain\n";
-      s += "\t\t\t Applied rule: " + createIsoRule[source + destination].name +
-           "]";
-      Report[2].str.push_back(s);
+          ") is not allowed in g_source domain\n";
+      s += "\t\t\t Applied rule: " +
+           createIsoRule[g_source + g_destination].name + "]";
+      g_report[2].str.push_back(s);
 
       return false;
     } else
@@ -196,10 +187,11 @@ bool CheckLS_1_2_4(NodePointer LSNodes, map<string, Module> &moduleMap) {
     if (source == destination) {
       string s;
       string finalport;
-      string finalsource = findS(moduleMap, LSNodes->hiraName, IN, finalport);
+      string finalsource =
+          findS(moduleMap, LSNodes->hiraName, PortType::IN, finalport);
       string finalport2;
       string finalsource2 =
-          findS(moduleMap, LSNodes->hiraName, OUT, finalport2);
+          findS(moduleMap, LSNodes->hiraName, PortType::OUT, finalport2);
 
       s = "[Level shifter '" + LSNodes->hiraName + "' (" + LSNodes->type +
           ") has the same input/output voltage domain in all power modes\n";
@@ -208,7 +200,7 @@ bool CheckLS_1_2_4(NodePointer LSNodes, map<string, Module> &moduleMap) {
       s += "\t\t\t Output pin load: " + destination_name + "/" + finalsource2 +
            "/" + finalport2 + "\n";
 
-      Report[9].str.push_back(s);
+      g_report[9].str.push_back(s);
       return false;
     }
   }
@@ -231,7 +223,8 @@ bool CheckLS_1_2_4(NodePointer LSNodes, map<string, Module> &moduleMap) {
         if ((source_vol < inLow) || (source_vol > inHigh)) {
           string s;
 
-          s = "[Pin '" + findPort(LSNodes->hiraName, IN, moduleMap, "-1") +
+          s = "[Pin '" +
+              findPort(LSNodes->hiraName, PortType::IN, moduleMap, "-1") +
               "' of '" + LSNodes->hiraName + "' (module " + LSNodes->type +
               " ) is connected to domain " + source + " (Power Voltage " +
               float2str(source_vol) + "V)\n";
@@ -242,7 +235,7 @@ bool CheckLS_1_2_4(NodePointer LSNodes, map<string, Module> &moduleMap) {
           else
             s += float2str(inLow) + "V:" + float2str(inHigh) + "V]";
 
-          Report[6].str.push_back(s);
+          g_report[6].str.push_back(s);
           chLS1 = false;
         }
       }
@@ -253,7 +246,8 @@ bool CheckLS_1_2_4(NodePointer LSNodes, map<string, Module> &moduleMap) {
         if ((dest_vol < outLow) || (dest_vol > outHigh)) {
           string s;
 
-          s = "[Pin '" + findPort(LSNodes->hiraName, OUT, moduleMap, "-1") +
+          s = "[Pin '" +
+              findPort(LSNodes->hiraName, PortType::OUT, moduleMap, "-1") +
               "' of '" + LSNodes->hiraName + "' (module " + LSNodes->type +
               " ) is connected to domain " + destination + " (Power Voltage " +
               float2str(dest_vol) + "V)\n";
@@ -264,7 +258,7 @@ bool CheckLS_1_2_4(NodePointer LSNodes, map<string, Module> &moduleMap) {
           else
             s += float2str(outLow) + "V:" + float2str(outHigh) + "V]";
 
-          Report[7].str.push_back(s);
+          g_report[7].str.push_back(s);
           chLS2 = false;
         }
       }
@@ -297,7 +291,7 @@ void CheckISO_1(NodePointer ISONode, map<string, Module> &moduleMap) {
           ISONode->hiraName + "/" + defineIsoCell[ISONode->type].enable +
           "' is ON]";
 
-      Report[0].str.push_back(s);
+      g_report[0].str.push_back(s);
 
       // cout << "Error: Pin: \'" << signal << "\' in control path can be OFF
       // when the isolation control pin \'" << ISONode->hiraName << "/" <<
@@ -362,17 +356,17 @@ bool CheckISO_4_LS_3(map<string, Module> &moduleMap) {
         string s;
 
         string finalport;
-        string finalsource =
-            findS(moduleMap, nodeIter->second.hiraName, OUT, finalport);
+        string finalsource = findS(moduleMap, nodeIter->second.hiraName,
+                                   PortType::OUT, finalport);
 
         s = "[Driver Pin: '" + nodeIter->second.hiraName + "/" + finalsource +
             "/" + finalport + "'(voltage: " + float2str(source_vol) +
             "V) to Load Pin: '" + sucIter->second.hiraName + "/" +
-            findPort(sucIter->second.hiraName, IN, moduleMap, "-1") +
+            findPort(sucIter->second.hiraName, PortType::IN, moduleMap, "-1") +
             "'(voltage: " + float2str(dest_vol) +
             "V) does not have level shifter cell]";
 
-        Report[8].str.push_back(s);
+        g_report[8].str.push_back(s);
       }
 
       // Check ISO 4
@@ -391,18 +385,20 @@ bool CheckISO_4_LS_3(map<string, Module> &moduleMap) {
           string s;
 
           s = "[Pin: '" + nodeIter->second.hiraName + "/" +
-              findPort(nodeIter->second.hiraName, IN, moduleMap, "-1") +
+              findPort(nodeIter->second.hiraName, PortType::IN, moduleMap,
+                       "-1") +
               "' in rule '" + c->name + "' does not have isolation cell]";
 
-          Report[3].str.push_back(s);
+          g_report[3].str.push_back(s);
         } else if ((source_vol == 0) && (dest_vol > 0)) {  // Off->on
           string s;
 
           s = "[Pin: '" + nodeIter->second.hiraName + "/" +
-              findPort(nodeIter->second.hiraName, IN, moduleMap, "-1") +
+              findPort(nodeIter->second.hiraName, PortType::IN, moduleMap,
+                       "-1") +
               "' in rule '" + c->name + "' does not have isolation cell]";
 
-          Report[3].str.push_back(s);
+          g_report[3].str.push_back(s);
         } else  // On->on or On->off
           ;
       }
@@ -455,14 +451,15 @@ bool CheckISO_5(NodePointer ISONodes, map<string, Module> &moduleMap) {
   if (moduleMap[father->type]
           .units[ISONodes->name]
           .ports[defineIsoCell[ISONodes->type].enable]
-          .connectWireName != createIsoRule[source + destination].condition) {
+          .connectWireName !=
+      createIsoRule[g_source + g_destination].condition) {
     string s;
     D_I_C *cell = &defineIsoCell[ISONodes->type];
-    C_I_R *c = &createIsoRule[source + destination];
+    C_I_R *c = &createIsoRule[g_source + g_destination];
 
     s = "[The control pin '" + cell->enable + "' of '" + ISONodes->hiraName +
         "' is connected to a wrong pin. \n";
-    s += "\t\t\t Rule '" + createIsoRule[source + destination].name +
+    s += "\t\t\t Rule '" + createIsoRule[g_source + g_destination].name +
          "' - specified control pin is ";
 
     if (c->negation)
@@ -470,7 +467,7 @@ bool CheckISO_5(NodePointer ISONodes, map<string, Module> &moduleMap) {
     else
       s += c->condition + "]";
 
-    Report[4].str.push_back(s);
+    g_report[4].str.push_back(s);
 
     return false;
   }
@@ -523,7 +520,7 @@ bool CheckISO_6(NodePointer ISONodes, map<string, Module> &moduleMap) {
   table[3][6] = 1;
   table[3][7] = 1;
 
-  C_I_R *c = &createIsoRule[source + destination];
+  C_I_R *c = &createIsoRule[g_source + g_destination];
   D_I_C *cell = &defineIsoCell[ISONodes->type];
   Module *module = &moduleMap[ISONodes->type];
   Module *father = &moduleMap[ISONodes->father->type];
@@ -572,13 +569,13 @@ bool CheckISO_6(NodePointer ISONodes, map<string, Module> &moduleMap) {
         A = 0;
       else
         A = 1;
-    } else if (ports->second.type == IN) {
+    } else if (ports->second.type == PortType::IN) {
       if (ports->second.inverted)
         B = 0;
       else
         B = 1;
 
-    } else if (ports->second.type == OUT) {
+    } else if (ports->second.type == PortType::OUT) {
       if (ports->second.inverted)
         C = 0;
       else
@@ -601,14 +598,14 @@ bool CheckISO_6(NodePointer ISONodes, map<string, Module> &moduleMap) {
         else
           A = 0;
       }
-    } else if (ports->second.type == IN) {
+    } else if (ports->second.type == PortType::IN) {
       if (ports->second.inverted) {
         if (B == 0)
           B = 1;
         else
           B = 0;
       }
-    } else if (ports->second.type == OUT) {
+    } else if (ports->second.type == PortType::OUT) {
       if (ports->second.inverted) {
         if (C == 0)
           C = 1;
@@ -631,7 +628,7 @@ bool CheckISO_6(NodePointer ISONodes, map<string, Module> &moduleMap) {
       else
         s += c->condition + "]";
 
-      Report[5].str.push_back(s);
+      g_report[5].str.push_back(s);
 
       return false;
     } else
@@ -779,5 +776,3 @@ string findD(map<string, Module> &moduleMap, string hirname,
 
   return finalInstanceName;
 }
-
-#endif  // end of CHECKER_H

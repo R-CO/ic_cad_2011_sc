@@ -1,12 +1,22 @@
+#include "verilog_testing.hpp"
 
-#include "Data.h"
+// C++ standard library
+#include <iostream>
+using std::boolalpha;
+using std::cout;
+using std::endl;
+#include <string>
+using std::string;
 
-#ifndef VERILOG_TESTING_H
-#define VERILOG_TESTING_H
+// C++ STL container
+#include <map>
+using std::map;
+#include <vector>
+using std::vector;
 
-void VerilogParserTesting(map<string, Module> &);
+#include "data_structure_define.hpp"
 
-void VerilogParserTesting(map<string, Module> &moduleMap) {
+void testVerilogParser(map<string, Module> &moduleMap) {
   map<string, Module>::iterator modIter;
   map<string, Port>::iterator portIter;
   map<string, Wire>::iterator wireIter;
@@ -24,10 +34,10 @@ void VerilogParserTesting(map<string, Module> &moduleMap) {
            << "Port order:" << portIter->second.portOrder << "***" << endl
            << "Port type:";
       switch (portIter->second.type) {
-        case IN:
+        case PortType::IN:
           cout << "IN***" << endl;
           break;
-        case OUT:
+        case PortType::OUT:
           cout << "OUT***" << endl;
           break;
         default:
@@ -57,10 +67,10 @@ void VerilogParserTesting(map<string, Module> &moduleMap) {
              << "Port name:" << conIter->portName << "***" << endl
              << "Port type:";
         switch (conIter->portType) {
-          case IN:
+          case PortType::IN:
             cout << "IN***" << endl;
             break;
-          case OUT:
+          case PortType::OUT:
             cout << "OUT***" << endl;
             break;
           default:
@@ -81,10 +91,10 @@ void VerilogParserTesting(map<string, Module> &moduleMap) {
              << "Port order:" << portIter->second.portOrder << "***" << endl
              << "Port type:";
         switch (portIter->second.type) {
-          case IN:
+          case PortType::IN:
             cout << "IN***" << endl;
             break;
-          case OUT:
+          case PortType::OUT:
             cout << "OUT***" << endl;
             break;
           default:
@@ -102,5 +112,3 @@ void VerilogParserTesting(map<string, Module> &moduleMap) {
     cout << endl << "********************" << endl << endl;
   }
 }
-
-#endif

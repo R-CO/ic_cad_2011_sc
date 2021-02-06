@@ -1,14 +1,22 @@
+#include "power_intent_parser.hpp"
+
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+using std::ifstream;
 #include <iostream>
-#include <map>
+using std::cerr;
+using std::endl;
 #include <string>
-#include <vector>
-using namespace std;
+using std::string;
 
-#ifndef POWER_PARSER
-#define POWER_PARSER
+#include <map>
+using std::map;
+#include <vector>
+using std::vector;
+
+#include "data_structure_define.hpp"
+#include "little_tools.hpp"
 
 bool ReadPowerFile(const char *, vector<string> &);
 void ParsePowerFile(const vector<string> &, map<string, Module> &);
@@ -45,24 +53,24 @@ bool ReadPowerFile(const char *fileName, vector<string> &powerStatement) {
   size_t staCount = 0;
   size_t pos;
 
-  ifstream inFile(fileName, ios::in);
+  ifstream inFile(fileName, std::ios::in);
   if (!inFile) {
     return false;
-  } else {
-    powerStatement.push_back(string());
-    while (getline(inFile, statement)) {
-      powerStatement[staCount] += statement;
-      powerStatement[staCount] += " ";
-      pos = statement.find("\\");
-      if (pos != string::npos && (statement.find("#") > pos)) {
-        powerStatement[staCount][powerStatement[staCount].find("\\")] = ' ';
-      } else {
-        staCount++;
-        powerStatement.push_back(string());
-      }
-    }
-    return true;
   }
+
+  powerStatement.push_back(string());
+  while (getline(inFile, statement)) {
+    powerStatement[staCount] += statement;
+    powerStatement[staCount] += " ";
+    pos = statement.find("\\");
+    if (pos != string::npos && (statement.find("#") > pos)) {
+      powerStatement[staCount][powerStatement[staCount].find("\\")] = ' ';
+    } else {
+      staCount++;
+      powerStatement.push_back(string());
+    }
+  }
+  return true;
 }
 
 void ParsePowerFile(const vector<string> &powerStatement,
@@ -200,14 +208,14 @@ void DIC_Handle(const string &powerStatement, map<string, Module> &moduleMap) {
       /*** to know the gate type of the isolation cell ***/
       it = moduleMap[tempString].units.begin();
       if (it->second.unitType == "and" || it->second.unitType == "AND") {
-        tempDIC.gateType = AND;
+        tempDIC.gateType = IsoGateType::AND;
       } else if (it->second.unitType == "or" || it->second.unitType == "OR") {
-        tempDIC.gateType = OR;
+        tempDIC.gateType = IsoGateType::OR;
       } else if (it->second.unitType == "nand" ||
                  it->second.unitType == "NAND") {
-        tempDIC.gateType = NAND;
+        tempDIC.gateType = IsoGateType::NAND;
       } else if (it->second.unitType == "nor" || it->second.unitType == "NOR") {
-        tempDIC.gateType = NOR;
+        tempDIC.gateType = IsoGateType::NOR;
       }
     } else if (tempString == "-enable") {
       begin = powerStatement.find_first_not_of(" \t{", end);
@@ -497,5 +505,3 @@ void CPM_Handle(const string &powerStatement) {
   }
   createPowMode.push_back(tempCPM);
 }
-
-#endif

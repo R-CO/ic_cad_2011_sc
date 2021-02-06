@@ -1,14 +1,19 @@
-
-#ifndef NODE_TESTING
-#define NODE_TESTING
+#include "node_testing.hpp"
 
 #include <iostream>
-#include <map>
+using std::cin;
+using std::cout;
+using std::endl;
 #include <string>
-#include <vector>
-using namespace std;
+using std::string;
 
-#include "Data.h"
+#include <map>
+using std::map;
+#include <vector>
+using std::vector;
+
+#include "data_structure_define.hpp"
+#include "verilog_parser.hpp"
 
 void NodeTesting() {
   string nodeHiraName;
@@ -60,11 +65,11 @@ void NodeTesting() {
       for (iPortInfo = iInPort->second.begin();
            iPortInfo != iInPort->second.end(); ++iPortInfo) {
         cout << "Input port: " << iInPort->first << "***" << endl;
-        cout << "Connect to node: " << (*iPortInfo).conNode->hiraName << "***"
+        cout << "Connect to node: " << iPortInfo->conNode->hiraName << "***"
              << endl;
-        cout << "Connect to port: " << (*iPortInfo).conPortName << "***"
+        cout << "Connect to port: " << iPortInfo->conPortName << "***" << endl;
+        cout << "Type: " << static_cast<int>(iPortInfo->conPortType) << "***"
              << endl;
-        cout << "Type: " << (*iPortInfo).conPortType << "***" << endl;
         cout << "By wire: " << (*iPortInfo).wireName << "***" << endl;
       }
     }
@@ -77,8 +82,9 @@ void NodeTesting() {
              << endl;
         cout << "Connect to port: " << (*iPortInfo).conPortName << "***"
              << endl;
-        cout << "Type: " << (*iPortInfo).conPortType << "***" << endl;
-        cout << "By wire: " << (*iPortInfo).wireName << "***" << endl;
+        cout << "Type: " << static_cast<int>(iPortInfo->conPortType) << "***"
+             << endl;
+        cout << "By wire: " << iPortInfo->wireName << "***" << endl;
       }
     }
     for (iSource = nodeIter->second.source.begin();
@@ -97,5 +103,3 @@ void NodeTesting() {
     }
   } while (true);
 }
-
-#endif

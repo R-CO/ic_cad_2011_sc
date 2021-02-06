@@ -1,21 +1,10 @@
-#include <cstdlib>
+#include "little_tools.hpp"
+
 #include <cstring>
-#include <fstream>
-#include <iostream>
-#include <map>
 #include <string>
-#include <vector>
-using namespace std;
+using std::string;
 
-#ifndef LITTLE_TOOLS
-#define LITTLE_TOOLS
-
-inline size_t CountComma(const string &);
-inline string IntToString(const int);
-inline size_t CountSpace(const string &);
-inline void GetFromTo(const string &, int &, int &);
-
-inline string IntToString(const int integer) {
+string IntToString(const int integer) {
   string result;
   int i = 0;
   int temp;
@@ -35,7 +24,7 @@ inline string IntToString(const int integer) {
   return result;
 }
 
-inline size_t CountComma(const string &veriStatement) {
+size_t CountComma(const string &veriStatement) {
   size_t i = 0;
   size_t commaCount = 0;
 
@@ -50,7 +39,7 @@ inline size_t CountComma(const string &veriStatement) {
   return commaCount;
 }
 
-inline size_t CountSpace(const string &subStatement) {
+size_t CountSpace(const string &subStatement) {
   size_t i = 0;
   size_t spaceCount = 0;
 
@@ -65,7 +54,7 @@ inline size_t CountSpace(const string &subStatement) {
   return spaceCount;
 }
 
-inline void GetFromTo(const string &bus, int &from, int &to) {
+void GetFromTo(const string &bus, int &from, int &to) {
   size_t begin, end;
   string tempString;
 
@@ -79,5 +68,3 @@ inline void GetFromTo(const string &bus, int &from, int &to) {
   tempString = bus.substr(begin, end - begin);
   from = atoi(tempString.c_str());
 }
-
-#endif

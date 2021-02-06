@@ -1,0 +1,2 @@
+[ISO_4] [Power domain crossing does not have user-defined isolation cell] [Occurrence:1]
+	-	[#1] [Pin: 'u1/in' in rule 'iso1' does not have isolation cell]

@@ -15,33 +15,54 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Checker.h">
+    <ClInclude Include="src\verilog_testing.hpp">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="src\Data.h">
+    <ClInclude Include="src\verilog_parser.hpp">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="src\NodeTesting.h">
+    <ClInclude Include="src\checker.hpp">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="src\LittleTools.h">
+    <ClInclude Include="src\report.hpp">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="src\PowerIntentParser.h">
+    <ClInclude Include="src\data_structure_define.hpp">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="src\Report.h">
+    <ClInclude Include="src\node_testing.hpp">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="src\VerilogParser.h">
+    <ClInclude Include="src\power_intent_parser.hpp">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="src\VerilogTesting.h">
+    <ClInclude Include="src\little_tools.hpp">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\final.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\verilog_parser.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\verilog_testing.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\report.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\node_testing.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\power_intent_parser.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\little_tools.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\checker.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
   </ItemGroup>

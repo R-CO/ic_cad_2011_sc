@@ -1,33 +1,43 @@
-#include <cstdlib>
-#include <cstring>
+#include "verilog_parser.hpp"
+
 #include <fstream>
+using std::ifstream;
 #include <iostream>
-#include <map>
+using std::cerr;
+using std::cout;
+using std::endl;
 #include <string>
+using std::string;
+
+#include <map>
+using std::map;
 #include <vector>
-using namespace std;
+using std::vector;
 
-#include "Data.h"
-#include "LittleTools.h"
-#include "VerilogTesting.h"
+#include "little_tools.hpp"
 
-#ifndef VERILOG_PARSER_H
-#define VERILOG_PARSER_H
+/*** Global Variables ***/
+bool secondTime = false;
+map<string, int> primitiveGate;
+bool ok = true;
+size_t libStart = 9999999;
 
-bool ReadVerilogFile(const char *, vector<string> &, int &);
-void StoreVerilogStatement(vector<string> &, vector<string> &, const int);
-void ParseVerilogFile(vector<string> &, map<string, Module> &);
-string ModuleHandle(const string &,
-                    map<string, Module> &);  // the return value is the current
-                                             // parsing module name
-void InputHandle(const string &, map<string, Module> &, const string &);
-void OutputHandle(const string &, map<string, Module> &, const string &);
-bool InstanceHandle(const string &, map<string, Module> &, const string &);
-void WireHandle(const string &, map<string, Module> &, const string &);
-void ShowVerilogError(const string &);  // it won't show the line number
-string SplitModuleName(const string &);
-void CreatePrimitiveGate(void);
-void FindTopModule(map<string, Module> &);
+/*** global variables ***/
+map<string, string> libModule;
+map<string, Node> nodeMap;  // using the hierarchy name to be the index
+map<string, Node>::iterator nodeIter;
+
+// map<string, D_L_S_C_pointer> levShCells;
+vector<NodePointer> isoNodes;
+vector<NodePointer> levShNodes;
+
+/*** about top-module ***/
+string topModule;  // to record the name of the top module in the design
+map<string, PortDomain>
+    topPortDomain;  // using the top level port name to be the index
+
+/*** default power domain & default power mode ***/
+map<string, bool> notYetSetDomain;  // using the hirarchy name to be the index
 
 bool ReadVerilogFile(const char *fileName, vector<string> &fileContent,
                      int &fileCount) {
@@ -35,28 +45,28 @@ bool ReadVerilogFile(const char *fileName, vector<string> &fileContent,
   size_t begin, end;
   size_t stringSize;
 
-  ifstream inFile(fileName, ios::in);
+  ifstream inFile(fileName, std::ios::in);
   if (!inFile) {
     return false;
-  } else {
-    fileContent.push_back(tempString);
-    while (getline(inFile, tempString)) {
-      begin = tempString.find_first_not_of(" \t");
-      // to ignore the comments in the verilog file
-      if (begin == string::npos || tempString.substr(begin, 2) == "//") {
-        continue;
-      }
-      end = tempString.find_first_of(" \t", begin);
-      stringSize = end - begin;
-      if (tempString.substr(begin, stringSize) == "endmodule") {
-        tempString += ';';
-      }
-      tempString += ' ';
-      fileContent[fileCount] += tempString;
-    }
-    inFile.close();
-    return true;
   }
+
+  fileContent.push_back(tempString);
+  while (getline(inFile, tempString)) {
+    begin = tempString.find_first_not_of(" \t");
+    // to ignore the comments in the verilog file
+    if (begin == string::npos || tempString.substr(begin, 2) == "//") {
+      continue;
+    }
+    end = tempString.find_first_of(" \t", begin);
+    stringSize = end - begin;
+    if (tempString.substr(begin, stringSize) == "endmodule") {
+      tempString += ';';
+    }
+    tempString += ' ';
+    fileContent[fileCount] += tempString;
+  }
+
+  return true;
 }
 
 void StoreVerilogStatement(vector<string> &fileContent,
@@ -198,7 +208,7 @@ void InputHandle(const string &veriStatement, map<string, Module> &moduleMap,
     if (moduleMap[currentModule].ports.count(tempString) != 0) {
       portIter = moduleMap[currentModule].ports.find(tempString);
       portIter->second.connectWireName = tempString;
-      portIter->second.type = IN;
+      portIter->second.type = PortType::IN;
       portIter->second.multiBits = multiBits;
       portIter->second.inverted = false;
       portIter->second.from = from;
@@ -210,7 +220,7 @@ void InputHandle(const string &veriStatement, map<string, Module> &moduleMap,
       tempConInfo.instanceType = currentModule;
       tempConInfo.instanceName = currentModule;
       tempConInfo.portName = tempString;
-      tempConInfo.portType = IN;
+      tempConInfo.portType = PortType::IN;
       tempConInfo.portOrder = portIter->second.portOrder;
       tempWire.conInfo.push_back(tempConInfo);
       moduleMap[currentModule].wires[tempString] = tempWire;
@@ -218,7 +228,7 @@ void InputHandle(const string &veriStatement, map<string, Module> &moduleMap,
         for (bit = from; bit <= to; bit++) {
           tempPort.portName = tempString + '[' + IntToString(bit) + ']';
           tempPort.portOrder = portIter->second.portOrder;
-          tempPort.type = IN;
+          tempPort.type = PortType::IN;
           tempPort.connectWireName = tempPort.portName;
           tempPort.multiBits = false;
           tempPort.inverted = false;
@@ -248,7 +258,7 @@ void InputHandle(const string &veriStatement, map<string, Module> &moduleMap,
   tempString = veriStatement.substr(begin, end - begin);
   if (moduleMap[currentModule].ports.count(tempString) != 0) {
     portIter = moduleMap[currentModule].ports.find(tempString);
-    portIter->second.type = IN;
+    portIter->second.type = PortType::IN;
     portIter->second.multiBits = multiBits;
     portIter->second.inverted = false;
     portIter->second.connectWireName = tempString;
@@ -261,7 +271,7 @@ void InputHandle(const string &veriStatement, map<string, Module> &moduleMap,
     tempConInfo.instanceType = currentModule;
     tempConInfo.instanceName = currentModule;
     tempConInfo.portName = tempString;
-    tempConInfo.portType = IN;
+    tempConInfo.portType = PortType::IN;
     tempConInfo.portOrder = portIter->second.portOrder;
     tempWire.conInfo.push_back(tempConInfo);
     moduleMap[currentModule].wires[tempWire.wireName] = tempWire;
@@ -269,7 +279,7 @@ void InputHandle(const string &veriStatement, map<string, Module> &moduleMap,
       for (bit = from; bit <= to; bit++) {
         tempPort.portName = tempString + '[' + IntToString(bit) + ']';
         tempPort.portOrder = portIter->second.portOrder;
-        tempPort.type = IN;
+        tempPort.type = PortType::IN;
         tempPort.connectWireName = tempPort.portName;
         tempPort.multiBits = false;
         tempPort.inverted = false;
@@ -327,7 +337,7 @@ void OutputHandle(const string &veriStatement, map<string, Module> &moduleMap,
     if (moduleMap[currentModule].ports.count(tempString) != 0) {
       portIter = moduleMap[currentModule].ports.find(tempString);
       portIter->second.connectWireName = tempString;
-      portIter->second.type = OUT;
+      portIter->second.type = PortType::OUT;
       portIter->second.multiBits = multiBits;
       portIter->second.inverted = false;
       portIter->second.from = from;
@@ -339,7 +349,7 @@ void OutputHandle(const string &veriStatement, map<string, Module> &moduleMap,
       tempConInfo.instanceType = currentModule;
       tempConInfo.instanceName = currentModule;
       tempConInfo.portName = tempString;
-      tempConInfo.portType = OUT;
+      tempConInfo.portType = PortType::OUT;
       tempConInfo.portOrder = portIter->second.portOrder;
       tempWire.conInfo.push_back(tempConInfo);
       moduleMap[currentModule].wires[tempString] = tempWire;
@@ -347,7 +357,7 @@ void OutputHandle(const string &veriStatement, map<string, Module> &moduleMap,
         for (bit = from; bit <= to; bit++) {
           tempPort.portName = tempString + '[' + IntToString(bit) + ']';
           tempPort.portOrder = portIter->second.portOrder;
-          tempPort.type = OUT;
+          tempPort.type = PortType::OUT;
           tempPort.connectWireName = tempPort.portName;
           tempPort.multiBits = false;
           tempPort.inverted = false;
@@ -374,7 +384,7 @@ void OutputHandle(const string &veriStatement, map<string, Module> &moduleMap,
   if (moduleMap[currentModule].ports.count(tempString) != 0) {
     portIter = moduleMap[currentModule].ports.find(tempString);
     portIter->second.connectWireName = tempString;
-    portIter->second.type = OUT;
+    portIter->second.type = PortType::OUT;
     portIter->second.multiBits = multiBits;
     portIter->second.inverted = false;
     portIter->second.from = from;
@@ -386,7 +396,7 @@ void OutputHandle(const string &veriStatement, map<string, Module> &moduleMap,
     tempConInfo.instanceType = currentModule;
     tempConInfo.instanceName = currentModule;
     tempConInfo.portName = tempString;
-    tempConInfo.portType = OUT;
+    tempConInfo.portType = PortType::OUT;
     tempConInfo.portOrder = portIter->second.portOrder;
     ;
     tempWire.conInfo.push_back(tempConInfo);
@@ -395,7 +405,7 @@ void OutputHandle(const string &veriStatement, map<string, Module> &moduleMap,
       for (bit = from; bit <= to; bit++) {
         tempPort.portName = tempString + '[' + IntToString(bit) + ']';
         tempPort.portOrder = portIter->second.portOrder;
-        tempPort.type = OUT;
+        tempPort.type = PortType::OUT;
         tempPort.connectWireName = tempPort.portName;
         tempPort.multiBits = false;
         tempPort.inverted = false;
@@ -928,11 +938,11 @@ bool InstanceHandle(const string &veriStatement, map<string, Module> &moduleMap,
       tempConInfo.portName = portName;
       tempConInfo.portOrder = portOrder;
       if (portOrder == 0) {
-        tempUnit.ports[portName].type = OUT;
-        tempConInfo.portType = OUT;
+        tempUnit.ports[portName].type = PortType::OUT;
+        tempConInfo.portType = PortType::OUT;
       } else {
-        tempUnit.ports[portName].type = IN;
-        tempConInfo.portType = IN;
+        tempUnit.ports[portName].type = PortType::IN;
+        tempConInfo.portType = PortType::IN;
       }
       inverted = false;
       moduleMap[currentModule].wires[wireName].wireName = wireName;
@@ -955,8 +965,8 @@ bool InstanceHandle(const string &veriStatement, map<string, Module> &moduleMap,
     tempUnit.ports[portName].connectWireName = wireName;
     tempConInfo.portName = portName;
     tempConInfo.portOrder = portOrder;
-    tempUnit.ports[portName].type = IN;
-    tempConInfo.portType = IN;
+    tempUnit.ports[portName].type = PortType::IN;
+    tempConInfo.portType = PortType::IN;
     moduleMap[currentModule].wires[wireName].wireName = wireName;
     moduleMap[currentModule].wires[wireName].multiBits = false;
     moduleMap[currentModule].wires[wireName].conInfo.push_back(tempConInfo);
@@ -1053,5 +1063,3 @@ void FindTopModule(map<string, Module> &moduleMap) {
     }
   }
 }
-
-#endif

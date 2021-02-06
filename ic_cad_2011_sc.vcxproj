@@ -121,6 +121,9 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /FY $(TargetDir)$(TargetFileName) $(SolutionDir)bin\checker.exe</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -139,17 +142,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Checker.h" />
-    <ClInclude Include="src\Data.h" />
-    <ClInclude Include="src\LittleTools.h" />
-    <ClInclude Include="src\NodeTesting.h" />
-    <ClInclude Include="src\PowerIntentParser.h" />
-    <ClInclude Include="src\Report.h" />
-    <ClInclude Include="src\VerilogParser.h" />
-    <ClInclude Include="src\VerilogTesting.h" />
+    <ClInclude Include="src\checker.hpp" />
+    <ClInclude Include="src\data_structure_define.hpp" />
+    <ClInclude Include="src\little_tools.hpp" />
+    <ClInclude Include="src\node_testing.hpp" />
+    <ClInclude Include="src\power_intent_parser.hpp" />
+    <ClInclude Include="src\report.hpp" />
+    <ClInclude Include="src\verilog_parser.hpp" />
+    <ClInclude Include="src\verilog_testing.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\checker.cpp" />
     <ClCompile Include="src\final.cpp" />
+    <ClCompile Include="src\little_tools.cpp" />
+    <ClCompile Include="src\node_testing.cpp" />
+    <ClCompile Include="src\power_intent_parser.cpp" />
+    <ClCompile Include="src\report.cpp" />
+    <ClCompile Include="src\verilog_parser.cpp" />
+    <ClCompile Include="src\verilog_testing.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
