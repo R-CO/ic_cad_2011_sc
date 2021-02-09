@@ -1,7 +1,13 @@
 SOURCE_FILES = test.cpp verilog_parser_test.cpp
+OBJECT_FILES = $(SOURCE_FILES:.cpp=.obj)
+
+# x64 / x86
+TARGET_MACHINE = x64
+# windows / linux
+TARGET_OS = windows
 
 TARGET_PATH = bin
-EXECUTABLE_NAME = test
+EXECUTABLE_NAME = test.exe
 
 OPTIMIZATION =
 DEBUG_SYMBOL =
@@ -14,9 +20,9 @@ CXX_OPTIONS = $(OPTIMIZATION) $(DEBUG_SYMBOL) $(COMMON_WARNINGS) $(CXX_WARNINGS)
 LIBS = gtest.lib
 
 VCPKG_ROOT = G:\dev\vcpkg
-VCPKG_INCLUDE_PATH = $(VCPKG_ROOT)\installed\x64-windows\include
-VCPKG_LIB_PATH = $(VCPKG_ROOT)\installed\x64-windows\lib
-VCPKG_BIN_PATH = $(VCPKG_ROOT)\installed\x64-windows\bin
+VCPKG_INCLUDE_PATH = $(VCPKG_ROOT)\installed\$(TARGET_MACHINE)-$(TARGET_OS)\include
+VCPKG_LIB_PATH = $(VCPKG_ROOT)\installed\$(TARGET_MACHINE)-$(TARGET_OS)\lib
+VCPKG_BIN_PATH = $(VCPKG_ROOT)\installed\$(TARGET_MACHINE)-$(TARGET_OS)\bin
 
 INCLUDE_PATHS = /I$(VCPKG_INCLUDE_PATH) /I..\src
 LIB_PATHS = /LIBPATH:$(VCPKG_LIB_PATH)
@@ -26,20 +32,25 @@ LINK = link
 RM = del
 CP = copy
 
-all: $(TARGET_PATH)\$(LIBS:.lib=.dll) $(TARGET_PATH)\$(EXECUTABLE_NAME).exe
+all: $(TARGET_PATH)\$(LIBS:.lib=.dll) $(TARGET_PATH)\$(EXECUTABLE_NAME)
+	@echo "Make done!"
 
+$(TARGET_PATH)\$(EXECUTABLE_NAME): $(OBJECT_FILES)
+	$(LINK) $(OBJECT_FILES) $(LIB_PATHS) $(LIBS) /OUT:$(TARGET_PATH)\$(EXECUTABLE_NAME)
 
 $(TARGET_PATH)\$(LIBS:.lib=.dll):
-	@$(CP) $(VCPKG_BIN_PATH)\$(LIBS:.lib=.dll) $(TARGET_PATH)\
+	$(CP) $(VCPKG_BIN_PATH)\$(LIBS:.lib=.dll) $(TARGET_PATH)\
 
-$(TARGET_PATH)\$(EXECUTABLE_NAME).exe: $(TARGET_PATH)\$(SOURCE_FILES:.cpp=.obj)
-	$(LINK) $(LIB_PATHS) $(LIBS) $(TARGET_PATH)\$(SOURCE_FILES:.cpp=.obj) /OUT:$(TARGET_PATH)\$(EXECUTABLE_NAME).exe
+### Please manually add new rules ###
+test.obj: test.cpp
+	$(CXX) $(CXX_OPTIONS) $(INCLUDE_PATHS) /c /Fo:test.obj test.cpp
 
-$(TARGET_PATH)\test.obj: test.cpp
-	$(CXX) test.cpp $(CXX_OPTIONS) $(INCLUDE_PATHS) /Fo:$(TARGET_PATH)\test.obj
+verilog_parser_test.obj: verilog_parser_test.cpp
+	$(CXX) $(CXX_OPTIONS) $(INCLUDE_PATHS) /c /Fo:verilog_parser_test.obj verilog_parser_test.cpp
 
 .PHONY:
 clean:
+	$(RM) $(OBJECT_FILES)
 	$(RM) $(TARGET_PATH)\$(LIBS:.lib=.dll)
-	$(RM) $(TARGET_PATH)\$(SOURCE_FILES:.cpp=.obj)
-	$(RM) $(TARGET_PATH)\$(EXECUTABLE_NAME).exe
+	$(RM) $(TARGET_PATH)\$(EXECUTABLE_NAME)
+
