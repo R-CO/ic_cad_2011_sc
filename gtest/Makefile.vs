@@ -32,16 +32,17 @@ LINK = link
 RM = del
 CP = copy
 
-all: $(TARGET_PATH)\$(LIBS:.lib=.dll) $(TARGET_PATH)\$(EXECUTABLE_NAME)
+all: $(TARGET_PATH)\$(EXECUTABLE_NAME) $(TARGET_PATH)\gtest.dll
 	@echo "Make done!"
 
 $(TARGET_PATH)\$(EXECUTABLE_NAME): $(OBJECT_FILES)
 	$(LINK) $(OBJECT_FILES) $(LIB_PATHS) $(LIBS) /OUT:$(TARGET_PATH)\$(EXECUTABLE_NAME)
 
-$(TARGET_PATH)\$(LIBS:.lib=.dll):
-	$(CP) $(VCPKG_BIN_PATH)\$(LIBS:.lib=.dll) $(TARGET_PATH)\
+### Please manually add new rules for coping dll files ###
+$(TARGET_PATH)\gtest.dll:
+	$(CP) $(VCPKG_BIN_PATH)\gtest.dll $(TARGET_PATH)\
 
-### Please manually add new rules ###
+### Please manually add new rules for compiling source code ###
 test.obj: test.cpp
 	$(CXX) $(CXX_OPTIONS) $(INCLUDE_PATHS) /c /Fo:test.obj test.cpp
 
@@ -51,6 +52,6 @@ verilog_parser_test.obj: verilog_parser_test.cpp
 .PHONY:
 clean:
 	$(RM) $(OBJECT_FILES)
-	$(RM) $(TARGET_PATH)\$(LIBS:.lib=.dll)
+	$(RM) $(TARGET_PATH)\gtest.dll
 	$(RM) $(TARGET_PATH)\$(EXECUTABLE_NAME)
 
