@@ -29,10 +29,10 @@ extern std::vector<NodePointer> isoNodes;
 extern std::vector<NodePointer> levShNodes;
 
 /*** about top-module ***/
-extern std::string
-    topModule;  // to record the name of the top module in the design
-extern std::map<std::string, PortDomain>
-    topPortDomain;  // using the top level port name to be the index
+// to record the name of the top module in the design
+extern std::string topModule;
+// using the top level port name to be the index
+extern std::map<std::string, PortDomain> topPortDomain;
 
 /*** default power domain & default power mode ***/
 extern std::map<std::string, bool>
