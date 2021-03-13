@@ -39,8 +39,10 @@ void NodeTesting() {
     cout << "Hirarchy name: " << nodeIter->second.hiraName << "***" << endl;
     cout << "Type: " << nodeIter->second.type << "***" << endl;
     cout << "Name: " << nodeIter->second.name << "***" << endl;
-    cout << "Father's hirarchy name: " << nodeIter->second.father->hiraName
-         << "***" << endl;
+    if (nodeIter->second.father != nullptr) {
+      cout << "Father's hirarchy name: " << nodeIter->second.father->hiraName
+           << "***" << endl;
+    }
     cout << "Children's hirachy name: ";
     for (iChild = nodeIter->second.children.begin();
          iChild != nodeIter->second.children.end(); ++iChild) {

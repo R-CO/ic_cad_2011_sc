@@ -1,4 +1,4 @@
-SOURCE_FILES = test.cpp verilog_parser_test.cpp
+SOURCE_FILES = test.cpp verilog_parser_test.cpp ../src/verilog_parser.cpp ../src/little_tools.cpp
 OBJECT_FILES = $(SOURCE_FILES:.cpp=.o)
 
 # x64 / x86
@@ -15,7 +15,7 @@ COMMON_WARNINGS = -Wall
 
 CXX_WARNINGS = $(COMMON_WARNING)
 CXX_STD = -std=c++17
-CXX_OPTIONS = $(OPTIMIZATION) $(DEBUG_SYMBOL) $(COMMON_WARNINGS) $(CXX_WARNINGS) $(CXX_STD)
+CXX_OPTIONS = $(OPTIMIZATION) $(DEBUG_SYMBOL) $(COMMON_WARNINGS) $(CXX_WARNINGS) $(CXX_STD) -g
 
 LIBS = -lgtest -lpthread
 
@@ -46,6 +46,11 @@ test.o: test.cpp
 verilog_parser_test.o: verilog_parser_test.cpp
 	$(CXX) $(CXX_OPTIONS) $(INCLUDE_PATHS) -c -o verilog_parser_test.o verilog_parser_test.cpp
 	
+../src/verilog_parser.o: ../src/verilog_parser.cpp ../src/verilog_parser.hpp
+	$(CXX) $(CXX_OPTIONS) $(INCLUDE_PATHS) -c -o ../src/verilog_parser.o ../src/verilog_parser.cpp
+
+../src/little_tools.o: ../src/little_tools.cpp ../src/little_tools.hpp
+	$(CXX) $(CXX_OPTIONS) $(INCLUDE_PATHS) -c -o ../src/little_tools.o ../src/little_tools.cpp
 
 .PHONY:
 clean:

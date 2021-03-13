@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #if TEST
-  testVerilogParser(moduleMap);
+  // testVerilogParser(moduleMap);
   NodeTesting();
 #endif
 
@@ -172,7 +172,7 @@ bool ArgumentHandle(const int argc, char *argv[],
 }
 
 void CreateRoot(void) {
-  // nodeMap[topModule].hiraName = topModule;
+  nodeMap[topModule].hiraName = topModule;
   nodeMap[topModule].type = topModule;
   nodeMap[topModule].name = topModule;
   nodeMap[topModule].father = nullptr;
