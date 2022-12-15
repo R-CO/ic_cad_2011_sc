@@ -92,7 +92,7 @@ void ParseVerilogFile(vector<string> &veriStatements,
   size_t i;
 
   for (i = 0; i != veriStatements.size(); i++) {
-    // ³B²z¥H"module"¶}ÀYªºstatement
+    // ï¿½Bï¿½zï¿½H"module"ï¿½}ï¿½Yï¿½ï¿½statement
     if (veriStatements[i].find("module ") != string::npos) {
       if (secondTime == true) {
         currentModule = SplitModuleName(veriStatements[i]);
@@ -1062,4 +1062,88 @@ void FindTopModule(map<string, Module> &moduleMap) {
       break;
     }
   }
+}
+
+rco::VerilogParser::VerilogParser() {
+  // do nothing
+}
+
+rco::VerilogParser::~VerilogParser() {
+  // do nothing
+}
+
+bool rco::VerilogParser::parseFile(const std::string &file_path,
+                                   ModuleMap &module_map) {
+  if (readFile(file_path) == false) {
+    return false;
+  }
+
+  return parse(module_map);
+}
+
+bool rco::VerilogParser::readFile(const std::string &file_path) {
+  ifstream in_file(file_path, std::ios::in);
+  if (in_file.is_open() == false) {
+    return false;
+  }
+  this->statements_.clear();
+
+  std::string line_buffer(80, '\0');
+  while (getline(in_file, line_buffer)) {
+    Trim(line_buffer, " \t");
+    // to ignore the empty line or comments in the verilog file
+    if (line_buffer.empty() || strncmp(line_buffer.c_str(), "//", 2) == 0) {
+      continue;
+    }
+
+    this->statements_.emplace_back(line_buffer);
+  }
+
+  return true;
+}
+
+bool rco::VerilogParser::parse(ModuleMap &module_map) {
+  string currentModule;
+  size_t i;
+
+  for (i = 0; i != this->statements_.size(); i++) {
+    //
+    if (this->statements_[i].find("module ") != string::npos) {
+      if (secondTime == true) {
+        currentModule = SplitModuleName(this->statements_[i]);
+        continue;
+      }
+      currentModule = ModuleHandle(this->statements_[i], module_map);
+      if (i >= libStart) {
+        libModule[currentModule] = currentModule;
+      }
+    } else if (this->statements_[i].find("input ") != string::npos) {
+      if (secondTime == true) {
+        continue;
+      }
+      InputHandle(this->statements_[i], module_map, currentModule);
+    } else if (this->statements_[i].find("output ") != string::npos) {
+      if (secondTime == true) {
+        continue;
+      }
+      OutputHandle(this->statements_[i], module_map, currentModule);
+    } else if (this->statements_[i].find("inout ") != string::npos) {
+      cout << "Warning: this program can not handle inout-type port." << endl;
+      continue;
+    } else if (this->statements_[i].find("wire ") != string::npos) {
+      if (secondTime == true) {
+        continue;
+      }
+      WireHandle(this->statements_[i], module_map, currentModule);
+    } else if (this->statements_[i].find("endmodule") != string::npos) {
+      if (secondTime == true) {
+        continue;
+      }
+      currentModule.clear();
+    } else if (secondTime == true) {
+      ok = InstanceHandle(this->statements_[i], module_map, currentModule);
+    }
+  }
+
+  return true;
 }

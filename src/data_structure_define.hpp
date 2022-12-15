@@ -10,6 +10,7 @@
 
 // C++ STL container
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 enum class PortType { IN, OUT, INOUT };
@@ -19,74 +20,108 @@ enum class Location { FROM, TO, EITHER };
 enum class IsoGateType { AND, OR, NAND, NOR, XOR, XNOR };
 
 struct WireConnectInfo {
+  int portOrder;
+  PortType portType;
   std::string instanceType;
   std::string instanceName;
   std::string portName;
-  PortType portType;
-  int portOrder;
 
   WireConnectInfo()
-      : instanceType(),
-        instanceName(),
-        portName(),
+      : portOrder(-1),
         portType(PortType::IN),
-        portOrder(-1) {}
+        instanceType(),
+        instanceName(),
+        portName() {}
+
   void clear() {
+    this->portOrder = -1;
+    this->portType = PortType::IN;
     this->instanceType.clear();
     this->instanceName.clear();
     this->portName.clear();
-    this->portOrder = -1;
+  }
+
+  friend bool operator==(const WireConnectInfo &lhs,
+                         const WireConnectInfo &rhs) {
+    if (lhs.portType == rhs.portType && lhs.portOrder == rhs.portOrder &&
+        lhs.instanceType == rhs.instanceType &&
+        lhs.instanceName == rhs.instanceName &&
+        lhs.portOrder == rhs.portOrder) {
+      return true;
+    }
+
+    return false;
   }
 };
 
 struct Wire {
-  std::string wireName;
   bool multiBits;
-  std::vector<WireConnectInfo> conInfo;
   int from;
   int to;
-  Wire() {
-    this->multiBits = false;
-    this->from = false;
-    this->to = false;
-  }
+  std::string wireName;
+  std::vector<WireConnectInfo> conInfo;
+
+  Wire() : multiBits(false), from(-1), to(-1), wireName(), conInfo() {}
+
   void clear() {
-    this->wireName.clear();
     this->multiBits = false;
-    this->conInfo.clear();
     this->from = -1;
     this->to = -1;
+    this->wireName.clear();
+    this->conInfo.clear();
+  }
+
+  friend bool operator==(const Wire &lhs, const Wire &rhs) {
+    if (lhs.multiBits == rhs.multiBits && lhs.from == rhs.from &&
+        lhs.to == rhs.to && lhs.wireName == rhs.wireName &&
+        lhs.conInfo == rhs.conInfo) {
+      return true;
+    }
+
+    return false;
   }
 };
 
 struct Port {
-  std::string portName;
-  int portOrder;
-  PortType type;
-  std::string connectWireName;
   bool multiBits;
   bool inverted;  // is there a simbol '~' in front of the connect-wire name
+  int portOrder;
   int from;
   int to;
+  PortType type;
+  std::string portName;
+  std::string connectWireName;
 
   Port()
-      : portName(),
-        portOrder(-1),
-        type(PortType::IN),
-        connectWireName(),
-        multiBits(false),
+      : multiBits(false),
         inverted(false),
+        portOrder(-1),
         from(-1),
-        to(-1) {}
+        to(-1),
+        type(PortType::IN),
+        portName(),
+        connectWireName() {}
 
   void clear() {
-    this->portName.clear();
-    this->connectWireName.clear();
-    this->portOrder = -1;
     this->multiBits = false;
     this->inverted = false;
+    this->portOrder = -1;
     this->from = -1;
     this->to = -1;
+    this->type = PortType::IN;
+    this->portName.clear();
+    this->connectWireName.clear();
+  }
+
+  friend bool operator==(const Port &lhs, const Port &rhs) {
+    if (lhs.multiBits == rhs.multiBits && lhs.inverted == rhs.inverted &&
+        lhs.portOrder == rhs.portOrder && lhs.from == rhs.from &&
+        lhs.to == rhs.to && lhs.portName == rhs.portName &&
+        lhs.connectWireName == rhs.connectWireName) {
+      return true;
+    }
+
+    return false;
   }
 };
 
@@ -95,24 +130,49 @@ struct Unit {
   std::string unitName;  // instance name
   std::map<std::string, Port> ports;
 
+  Unit() : unitType(), unitName(), ports() {}
+
   void clear() {
     this->unitType.clear();
     this->unitName.clear();
     this->ports.clear();
   }
+
+  friend bool operator==(const Unit &lhs, const Unit &rhs) {
+    if (lhs.unitType == rhs.unitType && lhs.unitName == rhs.unitName &&
+        lhs.ports == rhs.ports) {
+      return true;
+    }
+
+    return false;
+  }
 };
 
 struct Module {                       // to record the information of a module
+  bool top;                           // is this a top module
   std::string moduleName;             // name of the module
   std::map<std::string, Wire> wires;  // wires of the module
   std::map<std::string, Port> ports;  // ports of the module
   std::map<std::string, Unit> units;  // instances of the module
-  bool top;
+
+  Module() : top(false), moduleName(), wires(), ports(), units() {}
+
   void clear() {
+    this->top = false;
     this->moduleName.clear();
     this->wires.clear();
     this->ports.clear();
     this->units.clear();
+  }
+
+  friend bool operator==(const Module &lhs, const Module &rhs) {
+    if (lhs.moduleName == rhs.moduleName && lhs.top == rhs.top &&
+        lhs.wires == rhs.wires && lhs.ports == rhs.ports &&
+        lhs.units == rhs.units) {
+      return true;
+    }
+
+    return false;
   }
 };
 
@@ -209,9 +269,9 @@ struct C_N_C {  // create_nominal_condition
 struct C_P_M {  // create_power_mode
   std::string name;
   std::map<std::string, std::string> condition;
-  bool defMode;
+  bool defaultMode;  // is default mode
 
-  C_P_M() : name(), condition(), defMode(false) {}
+  C_P_M() : name(), condition(), defaultMode(false) {}
 };
 
 struct PortDomain {

@@ -458,7 +458,7 @@ void CPM_Handle(const string &powerStatement) {
   const string command("create_power_mode");
   C_P_M tempCPM;
 
-  tempCPM.defMode = false;
+  tempCPM.defaultMode = false;
   begin = powerStatement.find(command);
   begin = powerStatement.find_first_not_of(" \t", begin + command.size());
   end = powerStatement.find_first_of(" \t", begin);
@@ -491,7 +491,7 @@ void CPM_Handle(const string &powerStatement) {
       tempString = subStatement.substr(subBegin, mid - subBegin);
       tempCPM.condition[tempString] = subStatement.substr(mid + 1);
     } else if (tempString == "-default") {
-      tempCPM.defMode = true;
+      tempCPM.defaultMode = true;
     }
     begin = powerStatement.find_first_not_of(" \t", end);
     if (begin == string::npos) {
@@ -500,7 +500,7 @@ void CPM_Handle(const string &powerStatement) {
     end = powerStatement.find_first_of(" \t", begin);
     tempString = powerStatement.substr(begin, end - begin);
   }
-  if (tempCPM.defMode == true) {
+  if (tempCPM.defaultMode == true) {
     defaultMode = tempCPM.name;
   }
   createPowMode.push_back(tempCPM);

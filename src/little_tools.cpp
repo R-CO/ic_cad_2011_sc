@@ -68,3 +68,16 @@ void GetFromTo(const string &bus, int &from, int &to) {
   tempString = bus.substr(begin, end - begin);
   from = atoi(tempString.c_str());
 }
+
+void TrimLeft(std::string &str, const std::string &char_list) {
+  str.erase(0, str.find_first_not_of(char_list.c_str()));
+}
+
+void TrimRight(std::string &str, const std::string &char_list) {
+  str.erase(str.find_last_not_of(char_list.c_str()) + 1);
+}
+
+void Trim(std::string &str, const std::string &char_list) {
+  TrimLeft(str, char_list);
+  TrimRight(str, char_list);
+}

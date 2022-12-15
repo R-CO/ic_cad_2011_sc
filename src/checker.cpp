@@ -211,7 +211,7 @@ bool CheckLS_1_2_4(NodePointer LSNodes, map<string, Module> &moduleMap) {
 
   for (i = 0; i < createPowMode.size(); i++) {
     // Has some problem in here
-    if (createPowMode[i].defMode == false) continue;
+    if (createPowMode[i].defaultMode == false) continue;
 
     string source_name = CPM_DomainToNom(createPowMode[i], source);
     string dest_name = CPM_DomainToNom(createPowMode[i], destination);
@@ -343,7 +343,7 @@ bool CheckISO_4_LS_3(map<string, Module> &moduleMap) {
         float dest_vol = 0;
 
         for (unsigned int k = 0; k < createPowMode.size(); k++) {
-          if (createPowMode[k].defMode == false) continue;
+          if (createPowMode[k].defaultMode == false) continue;
 
           string source_name =
               CPM_DomainToNom(createPowMode[k], nodeIter->second.domain);
@@ -381,7 +381,7 @@ bool CheckISO_4_LS_3(map<string, Module> &moduleMap) {
         C_I_R *c =
             &createIsoRule[nodeIter->second.domain + sucIter->second.domain];
 
-        if ((source_vol > 0) && (dest_vol == 0)) {  // On->off
+        if ((source_vol - 0.0 > 0.1) && (dest_vol - 0.0 < 0.0001)) {  // On->off
           string s;
 
           s = "[Pin: '" + nodeIter->second.hiraName + "/" +
@@ -390,7 +390,8 @@ bool CheckISO_4_LS_3(map<string, Module> &moduleMap) {
               "' in rule '" + c->name + "' does not have isolation cell]";
 
           g_report[3].str.push_back(s);
-        } else if ((source_vol == 0) && (dest_vol > 0)) {  // Off->on
+        } else if ((source_vol - 0.0 < 0.0001) &&
+                   (dest_vol - 0.0 > 0.1)) {  // Off->on
           string s;
 
           s = "[Pin: '" + nodeIter->second.hiraName + "/" +
@@ -399,8 +400,9 @@ bool CheckISO_4_LS_3(map<string, Module> &moduleMap) {
               "' in rule '" + c->name + "' does not have isolation cell]";
 
           g_report[3].str.push_back(s);
-        } else  // On->on or On->off
-          ;
+        } else {  // On->on or On->off
+          ;       // do nothing
+        }
       }
     }
   }
